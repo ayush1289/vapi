@@ -1,1 +1,7 @@
 vapi_env/
+__pycache__/
+vapi_main.py
+audioInput/
+.pytest_cache/
+test.wav
+.env

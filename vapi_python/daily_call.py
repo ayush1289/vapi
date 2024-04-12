@@ -1,7 +1,7 @@
 import daily
 import threading
 import pyaudio
-
+import wave
 SAMPLE_RATE = 16000
 NUM_CHANNELS = 1
 CHUNK_SIZE = 640
@@ -18,8 +18,10 @@ def is_playable_speaker(participant):
 class DailyCall(daily.EventHandler):
     def __init__(self):
         daily.Daily.init()
-
         self.__audio_interface = pyaudio.PyAudio()
+        self.__audio_interface = pyaudio.PyAudio()
+
+        self.__audio_interface = pyaudio.PyAudio()        
 
         self.__input_audio_stream = self.__audio_interface.open(
             format=pyaudio.paInt16,
@@ -85,8 +87,10 @@ class DailyCall(daily.EventHandler):
         self.__start_event = threading.Event()
         self.__receive_bot_audio_thread = threading.Thread(
             target=self.receive_bot_audio)
+        # self.__send_user_audio_thread = threading.Thread(
+        #     target=self.send_user_audio)
         self.__send_user_audio_thread = threading.Thread(
-            target=self.send_user_audio)
+            target=self.send_audio_packets)
 
         self.__receive_bot_audio_thread.start()
         self.__send_user_audio_thread.start()
@@ -162,3 +166,31 @@ class DailyCall(daily.EventHandler):
 
             if len(buffer) > 0:
                 self.__output_audio_stream.write(buffer, CHUNK_SIZE)
+    
+
+    def send_audio_packets(self):
+        self.__start_event.wait()
+
+        if self.__app_error:
+            print(f"Unable to receive mic audio!")
+            return
+        
+        while not self.__app_quit:
+            with wave.open("test.wav", 'rb') as wf:
+                assert wf.getnchannels() == NUM_CHANNELS, "Only mono audio is supported"
+                assert wf.getframerate() == SAMPLE_RATE, f"Only {SAMPLE_RATE} Hz audio is supported"
+
+                data = wf.readframes(CHUNK_SIZE)
+                while data:
+                    try:
+                        self.__mic_device.write_frames(data)
+                    except Exception as e:
+                        print(e)
+                    data = wf.readframes(CHUNK_SIZE)
+
+                # data = self.audio_bytes
+                # while data:
+                #     try:
+                #         self.__mic_device.write_frames(data)
+                #     except Exception as e:
+                #         print(e)

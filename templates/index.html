@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <button onclick="connectWebSocket()">Connect</button>
+    <button onclick="disconnectWebSocket()">Disconnect</button>
+    <br>
+    <br>
+    <button onclick="startVapi()">Start</button>
+    <button onclick="stopVapi()">Stop</button>
+
+  </form>
+    <script>
+        var ws;
+        function connectWebSocket() {
+            ws = new WebSocket("ws://localhost:8000/ws/audio");
+            ws.onmessage = function(event) {
+                console.log("Message from server ", event.data);
+            };
+            ws.onclose = function(event) {
+                console.log("WebSocket is closed now.");
+            };
+        }
+        function startVapi(event) {
+            ws.send("start");
+        }
+        function stopVapi(event) {
+            ws.send("stop");
+        }
+        
+        function disconnectWebSocket() {
+            ws.close();
+        }
+        
+    </script>
+</body>
+</html>
